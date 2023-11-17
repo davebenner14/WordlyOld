@@ -48,44 +48,79 @@
 
 <svelte:window on:keydown={handleInput} />
 
-<div class="grid">
-  {#each Array(maxGuesses) as _, row}
-    <div class="row">
-      {#each Array(wordLength) as _, col}
-        <div class="cell {getCellColor(row, col)}">
-          {guesses[row]?.[col] || ''}
-        </div>
-      {/each}
-    </div>
-  {/each}
-</div>
-
-<style>
-  .grid {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
-  .row {
-    display: flex;
-  }
-  .cell {
-    width: 50px;
-    height: 50px;
-    border: 1px solid #ddd;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 2em;
-    margin: 5px;
-  }
-  .green {
-    background-color: green;
-  }
-  .yellow {
-    background-color: yellow;
-  }
-  .grey {
-    background-color: grey;
-  }
-</style>
+<div class="app-container">
+	<header>
+	  <h1>Wordly</h1>
+	  <hr />
+	</header>
+  
+	<div class="grid">
+	  {#each Array(maxGuesses) as _, row}
+		<div class="row">
+		  {#each Array(wordLength) as _, col}
+			<div class="cell {getCellColor(row, col)}">
+			  {guesses[row]?.[col] || ''}
+			</div>
+		  {/each}
+		</div>
+	  {/each}
+	</div>
+  </div>
+  
+  <style>
+	.app-container {
+	  display: flex;
+	  flex-direction: column;
+	  align-items: center;
+	  justify-content: center;
+	  min-height: 100vh;
+	  padding: 20px;
+	}
+  
+	header {
+	  text-align: center;
+	  width: 100%;
+	  margin-bottom: 20px;
+	}
+  
+	h1 {
+	  margin: 0;
+	  padding-bottom: 0.5em;
+	}
+  
+	hr {
+	  border: none;
+	  height: 2px;
+	  background-color: #333;
+	  margin: 0;
+	}
+  
+	.grid {
+	  display: flex;
+	  flex-direction: column;
+	  align-items: center;
+	}
+	.row {
+	  display: flex;
+	}
+	.cell {
+	  width: 50px;
+	  height: 50px;
+	  border: 2px solid #333;    
+	  display: flex;
+	  justify-content: center;
+	  align-items: center;
+	  font-size: 2em;
+	  margin: 5px;
+	}
+	.green {
+	  background-color: green;
+	}
+	.yellow {
+	  background-color: yellow;
+	}
+	.grey {
+	  background-color: grey;
+	}
+  </style>
+  
