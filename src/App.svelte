@@ -94,12 +94,13 @@ function getCellColor(row, index) {
 		  <div class="row">
 			{#each Array(wordLength) as _, col}
 			  <div class="cell {getCellColor(row, col)}">
-				{row === guesses.length ? currentGuess[col] : guesses[row]?.[col] || ''}
+				{row === guesses.length && currentGuess.length > col ? currentGuess[col] : guesses[row]?.[col] || ''}
 			  </div>
 			{/each}
 		  </div>
 		{/each}
 	  </div>
+	  
 	  
 
 	  <div class="keyboard">
@@ -114,6 +115,7 @@ function getCellColor(row, index) {
 		{/each}
 	  </div>
 </div>
+
   <style>
   .app-container {
     display: flex;
