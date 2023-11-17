@@ -27,75 +27,93 @@
 ];
 
 function handleKeyClick(key) {
+  console.log("Clicked key:", key); // Log the clicked key
+
   if (key === 'Enter') {
     submitGuess();
   } else if (key === 'Backspace') {
     currentGuess = currentGuess.slice(0, -1);
-  } else if (currentGuess.length < wordLength) {
+  } else if (currentGuess.length < wordLength && key.length === 1) {
     currentGuess += key;
+  }
+
+  console.log("Current guess:", currentGuess); // Log the current guess
+}
+
+
+
+  function submitGuess() {
+  if (guesses.length >= maxGuesses || currentGuess.length !== wordLength) return;
+
+  if (!words.includes(currentGuess.toLowerCase())) {
+    alert('Not a valid word');
+    return;
+  }
+
+  guesses = [...guesses, currentGuess.toUpperCase()];
+  currentGuess = '';
+
+  if (currentWord === guesses[guesses.length - 1]) {
+    setTimeout(() => alert('Congratulations, you won!'), 500);
+  } else if (guesses.length === maxGuesses) {
+    setTimeout(() => alert(`Sorry, you lost. The word was ${currentWord}`), 500);
   }
 }
 
 
-  function handleInput(event) {
-    if (currentGuess.length < wordLength && /^[A-Za-z]$/.test(event.key)) {
-      currentGuess += event.key.toUpperCase();
-    }
-    if (event.key === 'Enter' && currentGuess.length === wordLength) {
-      submitGuess();
-    }
-    if (event.key === 'Backspace') {
-      currentGuess = currentGuess.slice(0, -1);
-    }
+function getCellColor(row, index) {
+  const letter = guesses[row]?.[index];
+  if (!letter) return '';
+  if (letter === currentWord[index]) return 'green';
+  if (currentWord.includes(letter)) {
+    // Check if the letter appears more times in the guess than in the word
+    const letterPositionInGuess = guesses[row].indexOf(letter);
+    const letterCountInWord = currentWord.split('').filter(l => l === letter).length;
+    const letterCountInGuess = guesses[row].slice(0, index + 1).filter(l => l === letter).length;
+    return letterCountInGuess <= letterCountInWord ? 'yellow' : 'grey';
   }
+  return 'grey';
+}
 
-  function submitGuess() {
-    guesses.push(currentGuess);
-    currentGuess = '';
-  }
-
-  function getCellColor(row, index) {
-    const letter = guesses[row]?.[index];
-    if (!letter) return '';
-    if (letter === currentWord[index]) return 'green';
-    if (currentWord.includes(letter)) return 'yellow';
-    return 'grey';
-  }
 </script>
 
-<svelte:window on:keydown={handleInput} />
 
 <div class="app-container">
 	<header>
 	  <h1>Wordly</h1>
 	  <hr />
 	</header>
+	<p>
+		{guesses.length < maxGuesses 
+		  ? `Guess ${guesses.length + 1} of ${maxGuesses}` 
+		  : 'Game Over'}
+	  </p>
   
-	<div class="grid">
-	  {#each Array(maxGuesses) as _, row}
-		<div class="row">
-		  {#each Array(wordLength) as _, col}
-			<div class="cell {getCellColor(row, col)}">
-			  {guesses[row]?.[col] || ''}
-			</div>
-		  {/each}
-		</div>
-	  {/each}
-	</div>
-  </div>
-
-  <div class="keyboard">
-	{#each keyboardRows as row}
-	  <div class="keyboard-row">
-		{#each row as key}
-		  <button class="key" on:click={() => handleKeyClick(key)}>
-			{key}
-		  </button>
+	  <div class="grid">
+		{#each Array(maxGuesses) as _, row}
+		  <div class="row">
+			{#each Array(wordLength) as _, col}
+			  <div class="cell {getCellColor(row, col)}">
+				{row === guesses.length ? currentGuess[col] : guesses[row]?.[col] || ''}
+			  </div>
+			{/each}
+		  </div>
 		{/each}
 	  </div>
-	{/each}
-  </div>
-  
+	  
+
+	  <div class="keyboard">
+		{#each keyboardRows as row}
+		  <div class="keyboard-row">
+			{#each row as key}
+			  <button class="key" on:click={() => handleKeyClick(key)}>
+				{key}
+			  </button>
+			{/each}
+		  </div>
+		{/each}
+	  </div>
+</div>
   <style>
   .app-container {
     display: flex;
@@ -141,6 +159,7 @@ function handleKeyClick(key) {
 	  align-items: center;
 	  font-size: 2em;
 	  margin: 5px;
+	  color: black;
 	}
 	.green {
 	  background-color: green;
