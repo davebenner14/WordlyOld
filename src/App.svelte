@@ -14,6 +14,7 @@
   const text = await res.text();
   words = text.split('\n').map(word => word.trim().replace('\r', '')).filter(Boolean);
   currentWord = selectRandomWord();
+  console.log("Chosen word:", currentWord);
 });
 
 
@@ -65,21 +66,30 @@ function submitGuess() {
   }
 }
 
-
-
 function getCellColor(row, index) {
   const letter = guesses[row]?.[index];
   if (!letter) return '';
-  if (letter === currentWord[index]) return 'green';
+
+  // Letter is in the correct position
+  if (letter === currentWord[index]) {
+    console.log(`Letter: ${letter}, Position: ${index}, Color: green`);
+    return 'green';
+  }
+
+  // Letter is in the word but in the wrong position
   if (currentWord.includes(letter)) {
-    // Check if the letter appears more times in the guess than in the word
-    const letterPositionInGuess = guesses[row].indexOf(letter);
     const letterCountInWord = currentWord.split('').filter(l => l === letter).length;
     const letterCountInGuess = guesses[row].slice(0, index + 1).filter(l => l === letter).length;
-    return letterCountInGuess <= letterCountInWord ? 'yellow' : 'grey';
+    const color = letterCountInGuess <= letterCountInWord ? 'yellow' : 'grey';
+    console.log(`Letter: ${letter}, Position: ${index}, Color: ${color}`);
+    return color;
   }
+
+  // Letter is not in the word at all
+  console.log(`Letter: ${letter}, Position: ${index}, Color: grey`);
   return 'grey';
 }
+
 
 </script>
 
