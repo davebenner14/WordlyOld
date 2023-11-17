@@ -10,11 +10,12 @@
 
   // Fetch words and select a random one on component mount
   onMount(async () => {
-    const res = await fetch('/words.txt');
-    const text = await res.text();
-    words = text.split('\n').filter(Boolean);
-    currentWord = selectRandomWord();
-  });
+  const res = await fetch('/words.txt');
+  const text = await res.text();
+  words = text.split('\n').map(word => word.trim().replace('\r', '')).filter(Boolean);
+  currentWord = selectRandomWord();
+});
+
 
   function selectRandomWord() {
     return words[Math.floor(Math.random() * words.length)];
@@ -42,23 +43,28 @@ function handleKeyClick(key) {
 
 
 
-  function submitGuess() {
+function submitGuess() {
   if (guesses.length >= maxGuesses || currentGuess.length !== wordLength) return;
 
+  console.log("Submitting guess:", currentGuess.toLowerCase()); // Debugging line
+
   if (!words.includes(currentGuess.toLowerCase())) {
-    alert('Not a valid word');
-    return;
-  }
+  alert('Not a valid word');
+  return;
+}
+
 
   guesses = [...guesses, currentGuess.toUpperCase()];
   currentGuess = '';
 
-  if (currentWord === guesses[guesses.length - 1]) {
+  // Check for winning or losing condition
+  if (currentWord.toLowerCase() === guesses[guesses.length - 1].toLowerCase()) {
     setTimeout(() => alert('Congratulations, you won!'), 500);
   } else if (guesses.length === maxGuesses) {
     setTimeout(() => alert(`Sorry, you lost. The word was ${currentWord}`), 500);
   }
 }
+
 
 
 function getCellColor(row, index) {
