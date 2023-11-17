@@ -20,6 +20,23 @@
     return words[Math.floor(Math.random() * words.length)];
   }
 
+  const keyboardRows = [
+  ['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'],
+  ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L'],
+  ['Enter', 'Z', 'X', 'C', 'V', 'B', 'N', 'M', 'Backspace']
+];
+
+function handleKeyClick(key) {
+  if (key === 'Enter') {
+    submitGuess();
+  } else if (key === 'Backspace') {
+    currentGuess = currentGuess.slice(0, -1);
+  } else if (currentGuess.length < wordLength) {
+    currentGuess += key;
+  }
+}
+
+
   function handleInput(event) {
     if (currentGuess.length < wordLength && /^[A-Za-z]$/.test(event.key)) {
       currentGuess += event.key.toUpperCase();
@@ -66,21 +83,33 @@
 	  {/each}
 	</div>
   </div>
+
+  <div class="keyboard">
+	{#each keyboardRows as row}
+	  <div class="keyboard-row">
+		{#each row as key}
+		  <button class="key" on:click={() => handleKeyClick(key)}>
+			{key}
+		  </button>
+		{/each}
+	  </div>
+	{/each}
+  </div>
   
   <style>
-	.app-container {
-	  display: flex;
-	  flex-direction: column;
-	  align-items: center;
-	  justify-content: center;
-	  min-height: 100vh;
-	  padding: 20px;
-	}
+  .app-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start; 
+    padding-top: 20px; 
+    padding-bottom: 20px; 
+  }
   
 	header {
 	  text-align: center;
 	  width: 100%;
-	  margin-bottom: 20px;
+	  margin-bottom: 40px;
 	}
   
 	h1 {
@@ -122,5 +151,26 @@
 	.grey {
 	  background-color: grey;
 	}
+	.keyboard {
+    margin-top: 20px;
+  }
+  .keyboard-row {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 5px;
+  }
+  .key {
+    background-color: lightgray;
+    border: none;
+    border-radius: 4px;
+    margin: 5px;
+    padding: 10px 15px;
+    font-size: 1em;
+    color: black;
+    cursor: pointer;
+  }
+  .key:active {
+    background-color: darkgray;
+  }
   </style>
   
