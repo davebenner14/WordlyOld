@@ -47,90 +47,123 @@ function handleKeyClick(key) {
 function submitGuess() {
   if (guesses.length >= maxGuesses || currentGuess.length !== wordLength) return;
 
-  console.log("Submitting guess:", currentGuess.toLowerCase()); // Debugging line
+  const guess = currentGuess.toLowerCase();
+  console.log("Submitting guess:", guess);
 
-  if (!words.includes(currentGuess.toLowerCase())) {
-  alert('Not a valid word');
-  return;
-}
+  if (!words.includes(guess)) {
+    alert('Not a valid word');
+    return;
+  }
 
+  // Analyzing and logging each letter in the guess
+  const analysis = guess.split('').map((letter, index) => {
+    if (letter === currentWord[index]) {
+      console.log(`Letter '${letter}' is in the correct position`);
+      return { letter, status: 'correct position' };
+    } else if (currentWord.includes(letter)) {
+      console.log(`Letter '${letter}' is in the word but in the wrong position`);
+      return { letter, status: 'wrong position' };
+    } else {
+      console.log(`Letter '${letter}' is not in the word`);
+      return { letter, status: 'not in word' };
+    }
+  });
+
+  console.log("Guess analysis:", analysis);
 
   guesses = [...guesses, currentGuess.toUpperCase()];
   currentGuess = '';
 
   // Check for winning or losing condition
-  if (currentWord.toLowerCase() === guesses[guesses.length - 1].toLowerCase()) {
+  if (currentWord.toLowerCase() === guess) {
     setTimeout(() => alert('Congratulations, you won!'), 500);
   } else if (guesses.length === maxGuesses) {
     setTimeout(() => alert(`Sorry, you lost. The word was ${currentWord}`), 500);
   }
 }
 
+
+
 function getCellColor(row, index) {
   const letter = guesses[row]?.[index];
   if (!letter) return '';
 
-  // Letter is in the correct position
+  let color = '';
+
+  // Correct position
   if (letter === currentWord[index]) {
-    console.log(`Letter: ${letter}, Position: ${index}, Color: green`);
-    return 'green';
+    color = 'green';
+    console.log(`Letter '${letter}' is correct and in the correct position`);
+  } else if (currentWord.includes(letter)) {
+    // Check if any of the same letters in the guess are in the correct position
+    let isAnyInCorrectPosition = false;
+    for (let i = 0; i < currentWord.length; i++) {
+      if (currentWord[i] === letter && guesses[row][i] === letter) {
+        isAnyInCorrectPosition = true;
+        break;
+      }
+    }
+
+    if (!isAnyInCorrectPosition) {
+      color = 'yellow';
+      console.log(`Letter '${letter}' is in the word but in the wrong position`);
+    } else {
+      color = 'lightgrey';
+    }
+  } else {
+    color = 'lightgrey';
+    console.log(`Letter '${letter}' is not in the word`);
   }
 
-  // Letter is in the word but in the wrong position
-  if (currentWord.includes(letter)) {
-    const letterCountInWord = currentWord.split('').filter(l => l === letter).length;
-    const letterCountInGuess = guesses[row].slice(0, index + 1).filter(l => l === letter).length;
-    const color = letterCountInGuess <= letterCountInWord ? 'yellow' : 'grey';
-    console.log(`Letter: ${letter}, Position: ${index}, Color: ${color}`);
-    return color;
-  }
-
-  // Letter is not in the word at all
-  console.log(`Letter: ${letter}, Position: ${index}, Color: grey`);
-  return 'grey';
+  console.log(`Row: ${row}, Index: ${index}, Letter: '${letter}', Color: ${color}`);
+  return color;
 }
+
+
+
+
+
 
 
 </script>
 
 
 <div class="app-container">
-	<header>
-	  <h1>Wordly</h1>
-	  <hr />
-	</header>
-	<p>
-		{guesses.length < maxGuesses 
-		  ? `Guess ${guesses.length + 1} of ${maxGuesses}` 
-		  : 'Game Over'}
-	  </p>
-  
-	  <div class="grid">
-		{#each Array(maxGuesses) as _, row}
-		  <div class="row">
-			{#each Array(wordLength) as _, col}
-			  <div class="cell {getCellColor(row, col)}">
-				{row === guesses.length && currentGuess.length > col ? currentGuess[col] : guesses[row]?.[col] || ''}
-			  </div>
-			{/each}
-		  </div>
-		{/each}
-	  </div>
-	  
-	  
+  <header>
+    <h1>Wordly</h1>
+    <hr />
+  </header>
+  <p>
+    {guesses.length < maxGuesses 
+      ? `Guess ${guesses.length + 1} of ${maxGuesses}` 
+      : 'Game Over'}
+  </p>
 
-	  <div class="keyboard">
-		{#each keyboardRows as row}
-		  <div class="keyboard-row">
-			{#each row as key}
-			  <button class="key" on:click={() => handleKeyClick(key)}>
-				{key}
-			  </button>
-			{/each}
-		  </div>
-		{/each}
-	  </div>
+  <div class="grid">
+    {#each Array(maxGuesses) as _, row}
+      <div class="row">
+        {#each Array(wordLength) as _, col}
+          <div class={`cell ${getCellColor(row, col)}`}>
+            {row === guesses.length && currentGuess.length > col ? currentGuess[col] : guesses[row]?.[col] || ''}
+          </div>
+        {/each}
+      </div>
+    {/each}
+  </div>
+  
+  <div class="keyboard">
+    {#each keyboardRows as row}
+      <div class="keyboard-row">
+        {#each row as key}
+          <button class="key" on:click={() => handleKeyClick(key)}>
+            {key}
+          </button>
+        {/each}
+      </div>
+    {/each}
+  </div>
 </div>
+
 
   <style>
   .app-container {
@@ -209,5 +242,18 @@ function getCellColor(row, index) {
   .key:active {
     background-color: darkgray;
   }
+  .green {
+    background-color: green;
+  }
+  .yellow {
+    background-color: yellow;
+  }
+  .grey {
+    background-color: grey;
+  }
+  .lightgrey {
+  background-color: lightgrey;
+}
+
   </style>
   
