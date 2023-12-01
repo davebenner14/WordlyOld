@@ -1,5 +1,7 @@
 <script>
   import { onMount } from 'svelte';
+  import Grid from './Grid.svelte';
+  import './AppStyles.css'; 
 
   let words = [];
   let currentWord = '';
@@ -7,128 +9,111 @@
   let guesses = [];
   const maxGuesses = 6;
   const wordLength = 5;
-  let testColor = '';
 
-
-  // Fetch words and select a random one on component mount
+  // Fetch words and select a random word on component mount
   onMount(async () => {
-  const res = await fetch('/words.txt');
-  const text = await res.text();
-  words = text.split('\n').map(word => word.trim().replace('\r', '')).filter(Boolean);
-  currentWord = selectRandomWord();
-  console.log("Chosen word:", currentWord);
-});
-
+    const res = await fetch('/words.txt');
+    const text = await res.text();
+    words = text.split('\n').map(word => word.trim().replace('\r', '')).filter(Boolean);
+    currentWord = selectRandomWord();
+    console.log("Chosen word:", currentWord);
+  });
 
   function selectRandomWord() {
     return words[Math.floor(Math.random() * words.length)];
   }
 
   const keyboardRows = [
-  ['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'],
-  ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L'],
-  ['Enter', 'Z', 'X', 'C', 'V', 'B', 'N', 'M', 'Backspace']
-];
+    ['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'],
+    ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L'],
+    ['Enter', 'Z', 'X', 'C', 'V', 'B', 'N', 'M', 'Backspace']
+  ];
 
-function handleKeyClick(key) {
-  console.log("Clicked key:", key); // Log the clicked key
+  function handleKeyClick(key) {
+    console.log("Clicked key:", key);
 
-  if (key === 'Enter') {
-    submitGuess();
-  } else if (key === 'Backspace') {
-    currentGuess = currentGuess.slice(0, -1);
-  } else if (currentGuess.length < wordLength && key.length === 1) {
-    currentGuess += key;
-  }
-
-  console.log("Current guess:", currentGuess); // Log the current guess
-}
-
-
-
-function submitGuess() {
-  if (guesses.length >= maxGuesses || currentGuess.length !== wordLength) return;
-
-  const guess = currentGuess.toLowerCase();
-  console.log("Submitting guess:", guess);
-
-  if (!words.includes(guess)) {
-    alert('Not a valid word');
-    return;
-  }
-
-  // Analyzing and logging each letter in the guess
-  const analysis = guess.split('').map((letter, index) => {
-    if (letter === currentWord[index]) {
-      console.log(`Letter '${letter}' is in the correct position`);
-      return { letter, status: 'correct position' };
-    } else if (currentWord.includes(letter)) {
-      console.log(`Letter '${letter}' is in the word but in the wrong position`);
-      return { letter, status: 'wrong position' };
-    } else {
-      console.log(`Letter '${letter}' is not in the word`);
-      return { letter, status: 'not in word' };
+    if (key === 'Enter') {
+      submitGuess();
+    } else if (key === 'Backspace') {
+      currentGuess = currentGuess.slice(0, -1);
+    } else if (currentGuess.length < wordLength && key.length === 1) {
+      currentGuess += key;
     }
-  });
 
-  console.log("Guess analysis:", analysis);
-
-  guesses = [...guesses, currentGuess.toUpperCase()];
-  currentGuess = '';
-
-  // Check for winning or losing condition
-  if (currentWord.toLowerCase() === guess) {
-    setTimeout(() => alert('Congratulations, you won!'), 500);
-  } else if (guesses.length === maxGuesses) {
-    setTimeout(() => alert(`Sorry, you lost. The word was ${currentWord}`), 500);
+    console.log("Current guess:", currentGuess);
   }
-}
 
+  function submitGuess() {
+    if (guesses.length >= maxGuesses || currentGuess.length !== wordLength) return;
 
+    const guess = currentGuess.toLowerCase();
+    console.log("Submitting guess:", guess);
 
-function getCellColor(row, index) {
-  const letter = guesses[row]?.[index];
+    if (!words.includes(guess)) {
+      alert('Not a valid word');
+      return;
+    }
+
+    // Analyzing and logging each letter in the guess
+    guess.split('').forEach((letter, index) => {
+      if (letter === currentWord[index]) {
+        console.log(`Letter '${letter}' is in the correct position`);
+      } else if (currentWord.includes(letter)) {
+        console.log(`Letter '${letter}' is in the word but in the wrong position`);
+      } else {
+        console.log(`Letter '${letter}' is not in the word`);
+      }
+    });
+
+    guesses = [...guesses, currentGuess.toUpperCase()];
+    currentGuess = '';
+
+    // Check for winning or losing condition
+    if (currentWord.toLowerCase() === guess) {
+      setTimeout(() => alert('Congratulations, you won!'), 500);
+    } else if (guesses.length === maxGuesses) {
+      setTimeout(() => alert(`Sorry, you lost. The word was ${currentWord}`), 500);
+    }
+  }
+
+  function getCellColor(cellId) {
+  const row = Math.floor(cellId / wordLength);
+  const col = cellId % wordLength;
+  const letter = guesses[row]?.[col];
+
   if (!letter) return '';
 
-  let color = '';
-
-  // Correct position
-  if (letter === currentWord[index]) {
-    color = 'green';
-    console.log(`Letter '${letter}' is correct and in the correct position`);
-  } else if (currentWord.includes(letter)) {
-    // Check if any of the same letters in the guess are in the correct position
-    let isAnyInCorrectPosition = false;
-    for (let i = 0; i < currentWord.length; i++) {
-      if (currentWord[i] === letter && guesses[row][i] === letter) {
-        isAnyInCorrectPosition = true;
-        break;
+  // Letter is in the correct position
+  if (letter === currentWord[col]) {
+    return 'green';
+  } 
+  // Letter is in the word but in the wrong position
+  else if (currentWord.includes(letter)) {
+    // Check if the letter appears in a correct position for a different instance
+    for (let i = 0; i < wordLength; i++) {
+      if (currentWord[i] === letter) {
+        // If this instance of the letter is already correctly guessed, continue checking other instances
+        if (guesses[row]?.[i] === letter) {
+          continue;
+        }
+        // If a different instance of the letter is not correctly guessed, color it yellow
+        return 'yellow';
       }
     }
-
-    if (!isAnyInCorrectPosition) {
-      color = 'yellow';
-      console.log(`Letter '${letter}' is in the word but in the wrong position`);
-    } else {
-      color = 'lightgrey';
-    }
-  } else {
-    color = 'lightgrey';
-    console.log(`Letter '${letter}' is not in the word`);
+    // If all instances of the letter are correctly guessed, color it light grey
+    return 'lightgrey';
+  } 
+  // Letter is not in the word
+  else {
+    return 'lightgrey';
   }
-
-  console.log(`Row: ${row}, Index: ${index}, Letter: '${letter}', Color: ${color}`);
-  return color;
 }
-
-
 
 
 
 
 
 </script>
-<button on:click={() => testColor = 'green'}>Change First Cell Color</button>
 
 
 <div class="app-container">
@@ -142,17 +127,7 @@ function getCellColor(row, index) {
       : 'Game Over'}
   </p>
 
-  <div class="grid">
-    {#each Array(maxGuesses) as _, row}
-      <div class="row">
-        {#each Array(wordLength) as _, col}
-          <div class={`cell ${getCellColor(row, col)}`}>
-            {row === guesses.length && currentGuess.length > col ? currentGuess[col] : guesses[row]?.[col] || ''}
-          </div>
-        {/each}
-      </div>
-    {/each}
-  </div>
+  <Grid {guesses} {currentGuess} {getCellColor} />
   
   <div class="keyboard">
     {#each keyboardRows as row}
@@ -167,96 +142,4 @@ function getCellColor(row, index) {
   </div>
 </div>
 
-
-  <style>
-  .app-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: flex-start; 
-    padding-top: 20px; 
-    padding-bottom: 20px; 
-  }
-  
-	header {
-	  text-align: center;
-	  width: 100%;
-	  margin-bottom: 40px;
-	}
-  
-	h1 {
-	  margin: 0;
-	  padding-bottom: 0.5em;
-	}
-  
-	hr {
-	  border: none;
-	  height: 2px;
-	  background-color: #333;
-	  margin: 0;
-	}
-  
-	.grid {
-	  display: flex;
-	  flex-direction: column;
-	  align-items: center;
-	}
-	.row {
-	  display: flex;
-	}
-	.cell {
-	  width: 50px;
-	  height: 50px;
-	  border: 2px solid #333;    
-	  display: flex;
-	  justify-content: center;
-	  align-items: center;
-	  font-size: 2em;
-	  margin: 5px;
-	  color: black;
-	}
-	.green {
-	  background-color: green;
-	}
-	.yellow {
-	  background-color: yellow;
-	}
-	.grey {
-	  background-color: grey;
-	}
-	.keyboard {
-    margin-top: 20px;
-  }
-  .keyboard-row {
-    display: flex;
-    justify-content: center;
-    margin-bottom: 5px;
-  }
-  .key {
-    background-color: lightgray;
-    border: none;
-    border-radius: 4px;
-    margin: 5px;
-    padding: 10px 15px;
-    font-size: 1em;
-    color: black;
-    cursor: pointer;
-  }
-  .key:active {
-    background-color: darkgray;
-  }
-  .green {
-    background-color: green;
-  }
-  .yellow {
-    background-color: yellow;
-  }
-  .grey {
-    background-color: grey;
-  }
-  .lightgrey {
-  background-color: lightgrey;
-}
-
-  </style>
   
