@@ -7,6 +7,8 @@
   let guesses = [];
   const maxGuesses = 6;
   const wordLength = 5;
+  let testColor = '';
+
 
   // Fetch words and select a random one on component mount
   onMount(async () => {
@@ -126,6 +128,7 @@ function getCellColor(row, index) {
 
 
 </script>
+<button on:click={() => testColor = 'green'}>Change First Cell Color</button>
 
 
 <div class="app-container">
