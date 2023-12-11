@@ -7,10 +7,10 @@
   let currentWord = '';
   let currentGuess = '';
   let guesses = [];
+  let gridKey = 0; // key to force re-render of Grid
   const maxGuesses = 6;
   const wordLength = 5;
 
-  // Fetch words and select a random word on component mount
   onMount(async () => {
     const res = await fetch('/words.txt');
     const text = await res.text();
@@ -30,8 +30,6 @@
   ];
 
   function handleKeyClick(key) {
-    console.log("Clicked key:", key);
-
     if (key === 'Enter') {
       submitGuess();
     } else if (key === 'Backspace') {
@@ -39,36 +37,22 @@
     } else if (currentGuess.length < wordLength && key.length === 1) {
       currentGuess += key;
     }
-
-    console.log("Current guess:", currentGuess);
   }
 
   function submitGuess() {
     if (guesses.length >= maxGuesses || currentGuess.length !== wordLength) return;
 
     const guess = currentGuess.toLowerCase();
-    console.log("Submitting guess:", guess);
-
     if (!words.includes(guess)) {
       alert('Not a valid word');
       return;
     }
 
-    // Analyzing and logging each letter in the guess
-    guess.split('').forEach((letter, index) => {
-      if (letter === currentWord[index]) {
-        console.log(`Letter '${letter}' is in the correct position`);
-      } else if (currentWord.includes(letter)) {
-        console.log(`Letter '${letter}' is in the word but in the wrong position`);
-      } else {
-        console.log(`Letter '${letter}' is not in the word`);
-      }
-    });
-
     guesses = [...guesses, currentGuess.toUpperCase()];
     currentGuess = '';
+    gridKey++; // Increment key to force re-render
 
-    // Check for winning or losing condition
+    // Check for win/loss
     if (currentWord.toLowerCase() === guess) {
       setTimeout(() => alert('Congratulations, you won!'), 500);
     } else if (guesses.length === maxGuesses) {
@@ -77,37 +61,27 @@
   }
 
   function getCellColor(cellId) {
-  const row = Math.floor(cellId / wordLength);
-  const col = cellId % wordLength;
-  const letter = guesses[row]?.[col];
+    const row = Math.floor(cellId / wordLength);
+    const col = cellId % wordLength;
+    const letter = guesses[row]?.[col];
 
-  if (!letter) return '';
+    if (letter === undefined) return '';
 
-  // Letter is in the correct position
-  if (letter === currentWord[col]) {
-    return 'green';
-  } 
-  // Letter is in the word but in the wrong position
-  else if (currentWord.includes(letter)) {
-    // Check if the letter appears in a correct position for a different instance
-    for (let i = 0; i < wordLength; i++) {
-      if (currentWord[i] === letter) {
-        // If this instance of the letter is already correctly guessed, continue checking other instances
-        if (guesses[row]?.[i] === letter) {
-          continue;
-        }
-        // If a different instance of the letter is not correctly guessed, color it yellow
+    if (letter === currentWord[col]) {
+      return 'green';
+    }
+
+    if (currentWord.includes(letter)) {
+      let letterCountInWord = currentWord.split('').filter(l => l === letter).length;
+      let letterCountInGuess = guesses[row].slice(0, col + 1).filter(l => l === letter).length;
+
+      if (letterCountInGuess <= letterCountInWord) {
         return 'yellow';
       }
     }
-    // If all instances of the letter are correctly guessed, color it light grey
-    return 'lightgrey';
-  } 
-  // Letter is not in the word
-  else {
+
     return 'lightgrey';
   }
-}
 
 
 
